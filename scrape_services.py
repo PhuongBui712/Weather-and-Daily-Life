@@ -1,8 +1,12 @@
 import pandas as pd
 from requests import get, post
 import json
+from dotenv import load_dotenv
+import os
 
-API_KEY = 'AIzaSyD-kCN4eo8MiZoxg6j-sQb4iAxX_4hG7_s'
+load_dotenv()
+API_KEY = os.getenv("API_KEY")
+
 street = ' trên Đường Láng, Thanh Xuân, Hà Nội'
 location_types = ['Sách', 'Barbershop, tiệm hớt tóc',
                   'Nhà thuốc', 'bệnh viện', 'Công ty', 'doanh nghiệp',

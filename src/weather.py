@@ -57,7 +57,7 @@ def call_api_every_x_seconds(x, realtime_url, dataframes):
         call_api_and_save(realtime_url, dataframes)
         time.sleep(x)
 
-def call_api_everday_at_x_hour(x, daytime_url):
+def call_api_everday(daytime_url):
     response = requests.post(daytime_url, json=payload, headers=headers)
     response_data = response.json()
     new_data = pd.DataFrame(response_data)
@@ -66,4 +66,8 @@ def call_api_everday_at_x_hour(x, daytime_url):
     #separate each data to a column
     new_data = pd.concat([new_data.drop(['data'], axis=1), new_data['data'].apply(pd.Series)], axis=1)
 
-    new_data.to_csv('../data/weather data/weather_data_1-3.csv', index=False)
+    new_data.to_csv('../data/weather data/weather_data_2-3.csv', index=False)
+
+def main():
+    #call_api_every_x_seconds(60, realtime_url, dataframes)
+    call_api_everday(daytime_url)

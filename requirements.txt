@@ -133,3 +133,7 @@ Werkzeug==2.2.3
 wrapt==1.15.0
 WTForms==3.0.1
 yarl==1.9.2
+tqdm==4.66.2
+pandas==2.2.0
+googlemaps==4.10.0
+python-dotenv==1.0.1

@@ -6,19 +6,19 @@ from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType
 
 
-def create_keyspace(session):
-    session.execute("""
-        CREATE KEYSPACE IF NOT EXISTS spark_streams
-        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
-    """)
+# def create_keyspace(session):
+#     session.execute("""
+#         CREATE KEYSPACE IF NOT EXISTS `spark_streams`
+#         WITH replication = {'class': 'SimpleStrategy', 'replication_factor': '1'};
+#     """)
 
-    print("Keyspace created successfully!")
+#     print("Keyspace created successfully!")
 
 
 def create_table(session):
     session.execute("""
-    CREATE TABLE IF NOT EXISTS spark_streams.created_users (
-        id UUID PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS spark_streams.users (
+        id TEXT PRIMARY KEY,
         first_name TEXT,
         last_name TEXT,
         gender TEXT,
@@ -52,10 +52,10 @@ def insert_data(session, **kwargs):
 
     try:
         session.execute("""
-            INSERT INTO spark_streams.created_users(id, first_name, last_name, gender, address, 
+            INSERT INTO spark_streams.users( id, first_name, last_name, gender, address, 
                 post_code, email, username, dob, registered_date, phone, picture)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (user_id, first_name, last_name, gender, address,
+        """, ( user_id, first_name, last_name, gender, address,
               postcode, email, username, dob, registered_date, phone, picture))
         logging.info(f"Data inserted for {first_name} {last_name}")
 
@@ -69,8 +69,12 @@ def create_spark_connection():
     try:
         s_conn = SparkSession.builder \
             .appName('SparkDataStreaming') \
-            .config('spark.jars.packages', "com.datastax.spark:spark-cassandra-connector_2.13:3.4.1,"
-                                           "org.apache.spark:spark-sql-kafka-0-10_2.13:3.4.1") \
+            .config('spark.jars.packages', "com.datastax.spark:spark-cassandra-connector-assembly_2.12:3.5.0,"
+                                            "com.datastax.spark:spark-cassandra-connector_2.12:3.5.0,"
+                                           "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,"
+                                           "org.apache.spark:spark-token-provider-kafka-0-10_2.12:3.5.0,"
+                                        #    "org.apache.commons:commons-pool2:1.5.4,"
+                                           "org.apache.kafka:kafka-clients:3.5.0") \
             .config('spark.cassandra.connection.host', 'localhost') \
             .getOrCreate()
 
@@ -85,10 +89,11 @@ def create_spark_connection():
 def connect_to_kafka(spark_conn):
     spark_df = None
     try:
+            # .option('spark.jars.packages', 'org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0') \
         spark_df = spark_conn.readStream \
             .format('kafka') \
             .option('kafka.bootstrap.servers', 'localhost:9092') \
-            .option('subscribe', 'users_created') \
+            .option('subscribe', 'new_users') \
             .option('startingOffsets', 'earliest') \
             .load()
         logging.info("kafka dataframe created successfully")
@@ -141,10 +146,13 @@ if __name__ == "__main__":
         # connect to kafka with spark connection
         spark_df = connect_to_kafka(spark_conn)
         selection_df = create_selection_df_from_kafka(spark_df)
+        query1 = selection_df.selectExpr("*").writeStream.format("console").start()
+        
+
         session = create_cassandra_connection()
 
         if session is not None:
-            create_keyspace(session)
+            # create_keyspace(session)
             create_table(session)
 
             logging.info("Streaming is being started...")
@@ -152,7 +160,9 @@ if __name__ == "__main__":
             streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
                                .option('checkpointLocation', '/tmp/checkpoint')
                                .option('keyspace', 'spark_streams')
-                               .option('table', 'created_users')
+                               .option('table', 'users')
                                .start())
 
             streaming_query.awaitTermination()
+            query1.awaitTermination()
+    

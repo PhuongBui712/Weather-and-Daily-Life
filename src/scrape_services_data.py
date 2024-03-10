@@ -103,9 +103,3 @@ def places_seach(location_types, location, progress_file_path, res_file_path, ma
         res += search_res
 
     return res
-
-
-service_list = places_seach(location_types, location,
-                            r'../data/searching_progress.txt',
-                            r'../data/services.json',
-                            max_pages=10)

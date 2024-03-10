@@ -35,8 +35,3 @@ def preprocess_data(file_path, included_pattern, file_out=None, write_csv=True, 
         os.remove(file_path)
 
     return df
-
-
-preprocess_data(r'../data/services.json',
-                included_pattern=r'(Cách Mạng Tháng 8|CMT8).*(Hồ Chí Minh|HCM)',
-                file_out=r'../data/services.csv')

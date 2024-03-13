@@ -4,7 +4,7 @@ set -e
 if [ -e "/opt/airflow/requirements.txt" ]; then
   $(command python) pip install --upgrade pip
   $(command -v pip) install --user -r requirements.txt
-  $(command -v pip) install --user LivePopularTimes
+  # $(command -v pip) install --user --upgrade git+https://github.com/GrocerCheck/LivePopularTimes
 fi
 
 if [ ! -f "/opt/airflow/airflow.db" ]; then

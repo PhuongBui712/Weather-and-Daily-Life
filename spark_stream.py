@@ -71,6 +71,14 @@ def create_spark_connection():
                                            "org.apache.kafka:kafka-clients:3.5.0") \
             .config('spark.cassandra.connection.host', 'localhost') \
             .getOrCreate()
+        # s_conn = SparkSession.builder \
+        #     .appName('SparkDataStreaming') \
+        #     .config('spark.jars.packages', "org.apache.spark:spark-sql-kafka-0-10_2.12:3.5.0,"
+        #                                    "org.apache.spark:spark-token-provider-kafka-0-10_2.12:3.5.0,"
+        #                                 #    "org.apache.commons:commons-pool2:1.5.4,"
+        #                                    "org.apache.kafka:kafka-clients:3.5.0") \
+        #     .config('spark.jars', "$SPARK_HOME/jars/postgresql-42.7.2.jar") \
+        #     .getOrCreate()
 
         s_conn.sparkContext.setLogLevel("ERROR")
         logging.info("Spark connection created successfully!")
@@ -112,17 +120,6 @@ def create_cassandra_connection():
 
 def create_selection_df_from_kafka(spark_df):
     schema = StructType([
-        # StructField("id", StringType(), False),
-        # StructField("first_name", StringType(), False),
-        # StructField("last_name", StringType(), False),
-        # StructField("gender", StringType(), False),
-        # StructField("address", StringType(), False),
-        # StructField("post_code", StringType(), False),
-        # StructField("email", StringType(), False),
-        # StructField("username", StringType(), False),
-        # StructField("registered_date", StringType(), False),
-        # StructField("phone", StringType(), False),
-        # StructField("picture", StringType(), False)
         StructField("location_id", StringType(), False),
         StructField("latitude", FloatType(), False),
         StructField("longitude", FloatType(), False),
@@ -144,23 +141,30 @@ if __name__ == "__main__":
         # connect to kafka with spark connection
         spark_df = connect_to_kafka(spark_conn)
         selection_df = create_selection_df_from_kafka(spark_df)
-        query1 = selection_df.selectExpr("*").writeStream.format("console").start()
+        query1 = selection_df.selectExpr("*").writeStream.outputMode("append").format("console").start()
         
 
-        session = create_cassandra_connection()
+        # session = create_cassandra_connection()
 
-        if session is not None:
-            # create_keyspace(session)
-            create_table(session)
+        # if session is not None:
+        #     # create_keyspace(session)
+        #     create_table(session)
 
-            logging.info("Streaming is being started...")
+        #     logging.info("Streaming is being started...")
 
-            streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
+        # streaming_query = (selection_df.writeStream.format("jdbc-streaming").option('driver', 'org.postgresql.Driver')
+        #                     .option('url', 'jdbc:postgresql://localhost:5432/airflow')
+        #                     .option('checkpointLocation', '/tmp/checkpoint1')
+        #                     .option('table', 'locations')
+        #                     .start())
+
+        streaming_query = (selection_df.writeStream.format("org.apache.spark.sql.cassandra")
                                .option('checkpointLocation', '/tmp/checkpoint1')
                                .option('keyspace', 'spark_streams')
                                .option('table', 'locations')
                                .start())
 
-            streaming_query.awaitTermination()
-            query1.awaitTermination()
+
+        streaming_query.awaitTermination()
+        query1.awaitTermination()
     

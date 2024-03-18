@@ -137,3 +137,4 @@ tqdm==4.66.2
 pandas==2.2.0
 googlemaps==4.10.0
 python-dotenv==1.0.1
+livepopulartimes==1.3 

@@ -5,7 +5,9 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 import time 
-from weather_stream import stream_data
+from scripts.weather_stream import stream_data
+#from scripts.update_live_service import live_service_stream
+
 
 default_args = {
     'owner': 'airscholar',
@@ -22,3 +24,8 @@ with DAG('user_automation',
         task_id='stream_data_from_api',
         python_callable=stream_data
     )
+
+    # streaming_task = PythonOperator(
+    #     task_id='live_service_stream',
+    #     python_callable=live_service_stream
+    # )

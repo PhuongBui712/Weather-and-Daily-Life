@@ -21,8 +21,8 @@ with DAG('user_automation',
          catchup=False) as dag:
 
     streaming_task = PythonOperator(
-        task_id='stream_data_from_api',
-        python_callable=stream_data
+        task_id = 'stream_data_from_api',
+        python_callable = stream_data
     )
 
     # streaming_task = PythonOperator(

@@ -36,23 +36,18 @@ def get_weather():
 
     return response_data
 
-def format_weather(res, option="weather"):
+def format_weather(res):
     location ={}
-    location['location_id'] = str(uuid.uuid4())
     location['latitude'] = res['location']['lat']
     location['longitude'] = res['location']['lon']
 
     weather = {}
     weather['time'] = res['data']['time']
-    weather = res['data']['values']
+    weather.update(res['data']['values'])
 
-    if option == "weather":
-        return weather
-    elif option == "location":
-        return location
-    else:
-        raise ValueError("Option must be weather or location")
+    weather.update(location)
 
+    return weather
 
 def stream_data():
     from kafka import KafkaProducer
@@ -66,11 +61,9 @@ def stream_data():
             break
         try:
             response_data = get_weather()
-            response_weather = format_weather(response_data, option="weather") #get weather data
-            response_location = format_weather(response_data, option="location") #get location data
+            response_weather = format_weather(response_data) 
 
-            producer.send('weather', json.dumps(response_weather, cls=UUIDEncoder).encode('utf-8'))
-            producer.send('locations', json.dumps(response_location, cls=UUIDEncoder).encode('utf-8'))
+            producer.send('weather', json.dumps(response_weather).encode('utf-8'))
 
         except Exception as e:
             logging.error(f'An error occured: {e}')

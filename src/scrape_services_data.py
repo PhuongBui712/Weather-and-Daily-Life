@@ -13,7 +13,7 @@ API_KEY = os.getenv("API_KEY")
 # global variable
 location = 'đường Cách Mạng Tháng 8, Thành phố Hồ Chí Minh, Vietnam'
 location_types = None
-with open(r'../data/location_types.txt', 'r') as file:
+with open(r'../data/services/location_types.txt', 'r') as file:
     location_types = [line.strip() for line in file.readlines()]
 
 
@@ -80,7 +80,7 @@ def places_seach(location_types, location, progress_file_path, res_file_path, ma
         with open(progress_file_path, 'r') as file:
             searched_types = set([line.strip() for line in file.readlines()])
     except:
-            searched_types = set()
+        searched_types = set()
 
     # get unsearched types
     unsearched_types = list(set(location_types) - searched_types)

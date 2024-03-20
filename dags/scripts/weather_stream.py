@@ -43,7 +43,26 @@ def format_weather(res):
 
     weather = {}
     weather['time'] = res['data']['time']
-    weather.update(res['data']['values'])
+    weather['cloud_base'] = res['data']['values']['cloudBase']
+    weather['cloud_ceiling'] = res['data']['values']['cloudCeiling']
+    weather['cloud_cover'] = res['data']['values']['cloudCover']
+    weather['dew_point'] = res['data']['values']['dewPoint']
+    weather['freezing_rain_intensity'] = res['data']['values']['freezingRainIntensity']
+    weather['humidity'] = res['data']['values']['humidity']
+    weather['precipitation_probability'] = res['data']['values']['precipitationProbability']
+    weather['pressure_surface_level'] = res['data']['values']['pressureSurfaceLevel']
+    weather['rain_intensity'] = res['data']['values']['rainIntensity']
+    weather['sleet_intensity'] = res['data']['values']['sleetIntensity']
+    weather['snow_intensity'] = res['data']['values']['snowIntensity']
+    weather['temperature'] = res['data']['values']['temperature']
+    weather['temperature_apparent'] = res['data']['values']['temperatureApparent']
+    weather['uv_health_concern'] = res['data']['values']['uvHealthConcern']
+    weather['uv_index'] = res['data']['values']['uvIndex']
+    weather['visibility'] = res['data']['values']['visibility']
+    weather['weather_code'] = res['data']['values']['weatherCode']
+    weather['wind_direction'] = res['data']['values']['windDirection']
+    weather['wind_gust'] = res['data']['values']['windGust']
+    weather['wind_speed'] = res['data']['values']['windSpeed']
 
     weather.update(location)
 

@@ -6,7 +6,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 import time 
 from scripts.weather_stream import stream_data
-#from scripts.update_live_service import live_service_stream
+from scripts.update_live_service import live_service_stream
 
 
 default_args = {
@@ -25,7 +25,7 @@ with DAG('user_automation',
         python_callable = stream_data
     )
 
-    # streaming_task = PythonOperator(
-    #     task_id='live_service_stream',
-    #     python_callable=live_service_stream
-    # )
+    streaming_task = PythonOperator(
+        task_id='live_service_stream',
+        python_callable=live_service_stream
+    )

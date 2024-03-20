@@ -74,7 +74,7 @@ def places_search_by_type(query, max_pages=5, api_key=API_KEY):
     return res
 
 
-def places_seach(location_types, location, progress_file_path, res_file_path, max_pages=5, api_key=API_KEY):
+def places_seach(progress_file_path, res_file_path, max_pages=5, api_key=API_KEY):
     # get lasted progress
     try:
         with open(progress_file_path, 'r', encoding='utf-8') as file:

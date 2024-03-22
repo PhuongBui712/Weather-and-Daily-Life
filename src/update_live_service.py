@@ -64,6 +64,15 @@ def update_live_data(basic_file_path, basic_attributes, attributes, file_dir=Non
     return df
 
 
+def get_next_crawling_time():
+    now = datetime.now(Saigon_timezone)
+    next_time = now + timedelta(minutes=15)
+    next_time = datetime(next_time.year, next_time.month, next_time.day,
+                         next_time.hour, (next_time.minute // 15) * 15,
+                         tzinfo=Saigon_timezone)
+
+    return next_time
+
 def job():
     update_live_data(r'../data/services/services.csv',
                      basic_attributes=basic_attributes,
@@ -87,6 +96,11 @@ if __name__ == "__main__":
                         file_out=r'../data/services/services.csv')
 
     # update live data
-    schedule.every(15).minutes.do(job)
     while True:
-        schedule.run_pending()
+        # calculate next time
+        next_time = get_next_crawling_time()
+        if datetime.now(Saigon_timezone).minute != next_time.minute:
+            sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
+
+        # update live time
+        job()

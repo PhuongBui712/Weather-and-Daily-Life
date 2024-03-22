@@ -68,7 +68,7 @@ def get_next_crawling_time():
     now = datetime.now(Saigon_timezone)
     next_time = now + timedelta(minutes=15)
     next_time = datetime(next_time.year, next_time.month, next_time.day,
-                         next_time.hour, (next_time.minute // 15) * 15,
+                         next_time.hour, (next_time.minute // 15) * 15, 1,
                          tzinfo=Saigon_timezone)
 
     return next_time

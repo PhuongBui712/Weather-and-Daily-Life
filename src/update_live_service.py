@@ -87,19 +87,6 @@ if __name__ == "__main__":
                         file_out=r'../data/services/services.csv')
 
     # update live data
-    start_time = '00:00'
-    start_datetime = datetime(2024, 3, 21, 0, 0, 0, tzinfo=Saigon_timezone)
-    schedule.every().day.at(start_time, tz=Saigon_timezone).do(job)
-    while True:
-        if (start_datetime + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds - 5 > 0:
-            sleep((start_datetime + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds - 5)
-        schedule.run_pending()
-
-        dt_obj = datetime.now(Saigon_timezone)
-        if dt_obj.hour == 0 and dt_obj.minute == 0:
-            schedule.clear()
-            schedule.every(15).minutes.do(job)
-            break
-
+    schedule.every(15).minutes.do(job)
     while True:
         schedule.run_pending()

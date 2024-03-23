@@ -1,6 +1,8 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
 import time
 from datetime import datetime
 import os
@@ -16,7 +18,7 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     minute = utc_plus_7.strftime("%M")
     sec = utc_plus_7.strftime("%S")
     
-    webBrowser = webdriver.Chrome("/usr/bin/chromedriver")
+    webBrowser = webdriver.Chrome(executable_path= '/usr/bin/chromedriver')
 
     
     webBrowser.get(cam1)

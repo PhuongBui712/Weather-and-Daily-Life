@@ -19,7 +19,7 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     sec = utc_plus_7.strftime("%S")
 
     service = Service(executable_path='/usr/bin/chromedriver')
-    options =  Options
+    options =  webdriver.ChromeOptions()
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument('--remote-debugging-pipe')

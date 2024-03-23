@@ -17,8 +17,10 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     hour = utc_plus_7.strftime("%H")
     minute = utc_plus_7.strftime("%M")
     sec = utc_plus_7.strftime("%S")
-    
-    webBrowser = webdriver.Chrome(executable_path= '/usr/bin/chromedriver')
+
+    service = Service(executable_path='/usr/bin/chromedriver')
+    options = webdriver.ChromeOptions()
+    webBrowser = webdriver.Chrome(service=service, options=options)
 
     
     webBrowser.get(cam1)

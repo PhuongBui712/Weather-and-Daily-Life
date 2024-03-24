@@ -1,8 +1,8 @@
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+
 import time
 from datetime import datetime
 import os
@@ -18,16 +18,14 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     minute = utc_plus_7.strftime("%M")
     sec = utc_plus_7.strftime("%S")
 
-    service = Service(executable_path='/usr/bin/chromedriver')
-    options =  webdriver.ChromeOptions()
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument('--remote-debugging-pipe')
-    webBrowser = webdriver.Chrome(service=service, options=options)
+    options = Options()
+    options.add_argument('--headless')
+    options.add_argument('--no-sandbox')
+    options.add_argument('--disable-dev-shm-usage')
+    webBrowser = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
     
     webBrowser.get(cam1)
-    element = webBrowser.find_element(By.ID, "ext-element-1")
     webBrowser.set_window_size(1000, 800)
     folder_name = os.path.join("Pham Van Hai", year + "_"  + month + "_"  + day + "_"  + hour + "_"  + minute + "_"  + sec  + ".png")
     webBrowser.save_screenshot(folder_name)
@@ -37,7 +35,6 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     webBrowser.execute_script("window.open('about:blank','2ndtab');")
     webBrowser.switch_to.window("2ndtab")
     webBrowser.get(cam2)
-    element = webBrowser.find_element(By.ID, "ext-element-1")
     webBrowser.set_window_size(1000, 800)
     folder_name = os.path.join("Bac Hai", year + "_"  + month + "_"  + day + "_"  + hour + "_"  + minute + "_"  + sec  + ".png")
     webBrowser.save_screenshot(folder_name)
@@ -47,7 +44,6 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     webBrowser.execute_script("window.open('about:blank','3rdtab');")
     webBrowser.switch_to.window("3rdtab")
     webBrowser.get(cam3)
-    element = webBrowser.find_element(By.ID, "ext-element-1")
     webBrowser.set_window_size(1000, 800)
     folder_name = os.path.join("Truong Son", year + "_"  + month + "_"  + day + "_"  + hour + "_"  + minute + "_"  + sec  + ".png")
     webBrowser.save_screenshot(folder_name)
@@ -57,7 +53,6 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     webBrowser.execute_script("window.open('about:blank','4thtab');")
     webBrowser.switch_to.window("4thtab")
     webBrowser.get(cam4)
-    element = webBrowser.find_element(By.ID, "ext-element-1")
     webBrowser.set_window_size(1000, 800)
     folder_name = os.path.join("To Hien Thanh", year + "_"  + month + "_"  + day + "_"  + hour + "_"  + minute + "_"  + sec  + ".png")
     webBrowser.save_screenshot(folder_name)
@@ -68,7 +63,6 @@ def ScreenShot_to_Url (cam1, cam2, cam3, cam4, cam5):
     webBrowser.execute_script("window.open('about:blank','5thtab');")
     webBrowser.switch_to.window("5thtab")
     webBrowser.get(cam5)
-    element = webBrowser.find_element(By.ID, "ext-element-1")
     webBrowser.set_window_size(1000, 800)
     folder_name = os.path.join("Hoa Hung", year + "_"  + month + "_"  + day + "_"  + hour + "_"  + minute + "_"  + sec  + ".png")
     webBrowser.save_screenshot(folder_name)

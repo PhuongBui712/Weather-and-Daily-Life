@@ -20,12 +20,14 @@ with DAG('user_automation',
          schedule_interval='@daily',
          catchup=False) as dag:
 
-    streaming_task = PythonOperator(
+    weather_task = PythonOperator(
         task_id = 'stream_data_from_api',
         python_callable = stream_data
     )
 
-    streaming_task = PythonOperator(
+    live_service_task = PythonOperator(
         task_id='live_service_stream',
         python_callable=live_service_stream
     )
+
+[weather_task, live_service_task]

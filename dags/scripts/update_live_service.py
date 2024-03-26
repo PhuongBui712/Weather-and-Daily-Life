@@ -6,10 +6,12 @@ from time import sleep
 import time
 import json
 import logging
+import pytz
 
 from scripts.scrape_services_data import places_seach, location
 from scripts.preprocess_service_data import preprocess_data
 
+Saigon_timezone = pytz.timezone('Asia/Saigon')
 
 basic_attributes = ['name', 'formatted_address']
 live_attributes = ['place_id', 'name', 'datetime', 'rating', 'rating_n',
@@ -78,6 +80,14 @@ def get_live_data(basic_file_path, basic_attributes, attributes, write_csv=False
 
     return not_livetime_places
 
+def get_next_crawling_time():
+    now = datetime.now(Saigon_timezone)
+    next_time = now + timedelta(minutes=15)
+    next_time = datetime(next_time.year, next_time.month, next_time.day,
+                         next_time.hour, (next_time.minute // 15) * 15, 1,
+                         tzinfo=Saigon_timezone)
+
+    return next_time
 
 def live_service_stream():
 
@@ -90,20 +100,17 @@ def live_service_stream():
                         included_pattern=r'(Cách Mạng Tháng 8|CMT8).*(Hồ Chí Minh|HCM)',
                         file_out=r'/opt/airflow/dags/data/services.csv')
 
-    curr_time = time.time()
     while True:
-        # if time.time() > curr_time + 3: #1 minute
-        #     break
+        next_time = get_next_crawling_time()
+        if datetime.now(Saigon_timezone).minute != next_time.minute:
+           sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
+
         try:
             not_live_places = get_live_data(r'/opt/airflow/dags/data/services.csv',
-                                               basic_attributes=basic_attributes,
-                                               attributes=live_attributes,
-                                               write_csv=True)
-
+                                                   basic_attributes=basic_attributes,
+                                                   attributes=live_attributes,
+                                                   write_csv=True)
         except Exception as e:
             logging.error(f'An error occured: {e}')
-        break
-        with open(r'/opt/airflow/dags/data/not_livetime_places.txt', 'w', encoding='utf-8') as file:
-            for p in not_live_places:
-                file.write(f'{p}\n')
+            break
 

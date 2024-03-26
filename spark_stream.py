@@ -150,7 +150,7 @@ def connect_to_kafka(spark_conn):
         logging.info("kafka dataframe created successfully")
     except Exception as e:
         logging.warning(f"kafka dataframe could not be created because: {e}")
-
+    print("___________________________________________________________________")
     return spark_df
 
 def create_cassandra_connection():
@@ -162,7 +162,7 @@ def create_cassandra_connection():
 
         return cas_session
     except Exception as e:
-        logging.error(f"Could not create cassandra connection due to {e}")
+        print(f"Could not create cassandra connection due to {e}")
         return None
 
 if __name__ == "__main__":

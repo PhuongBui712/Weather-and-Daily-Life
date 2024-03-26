@@ -1,8 +1,10 @@
 import requests
 import uuid
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+from time import sleep
 import time 
+import pytz
 
 class UUIDEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -10,6 +12,8 @@ class UUIDEncoder(json.JSONEncoder):
             # if the obj is uuid, we simply return the value of uuid
             return obj.hex
         return json.JSONEncoder.default(self, obj)
+    
+Saigon_timezone = pytz.timezone('Asia/Saigon')
 
 realtime_url = "https://api.tomorrow.io/v4/weather/realtime?location=10.7829647,106.670745&apikey=Ez2hSkCFqMrvsXGs56HWnk7eWcKGwGP8"
 daytime_url = "https://api.tomorrow.io/v4/timelines?apikey=Ez2hSkCFqMrvsXGs56HWnk7eWcKGwGP8"
@@ -68,20 +72,28 @@ def format_weather(res):
 
     return weather
 
+def get_next_crawling_time():
+    now = datetime.now(Saigon_timezone)
+    next_time = now + timedelta(minutes=15)
+    next_time = datetime(next_time.year, next_time.month, next_time.day,
+                         next_time.hour, (next_time.minute // 15) * 15, 1,
+                         tzinfo=Saigon_timezone)
+
+    return next_time
+
 def stream_data():
     from kafka import KafkaProducer
     import time
     import logging
     
     producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000)
-    curr_time = time.time()
     while True:
-        if time.time() > curr_time + 3: #1 minute
-            break
+        next_time = get_next_crawling_time()
+        if datetime.now(Saigon_timezone).minute != next_time.minute:
+            sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
         try:
             response_data = get_weather()
-            response_weather = format_weather(response_data) 
-
+            response_weather = format_weather(response_data)
             producer.send('weather', json.dumps(response_weather).encode('utf-8'))
 
         except Exception as e:

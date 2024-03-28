@@ -100,19 +100,13 @@ while True:
 
 
 
-
-
-
-
-
-
 '''
 def job():
     ScreenShot_Traffic_Camera(CMT8_Pham_Van_Hai, CMT8_Bac_Hai, CMT8_Truong_Son, CMT8_To_Hien_Thanh, CMT8_Hoa_Hung)
-
-schedule.every(5).seconds.do(job)
+    schedule.every(5).seconds.do(job)
 
 while True:  
     schedule.run_pending()
     time.sleep(1)
 '''
+

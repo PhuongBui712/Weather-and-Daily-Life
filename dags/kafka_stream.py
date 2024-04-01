@@ -5,8 +5,10 @@ from datetime import datetime
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 import time 
-from scripts.weather_stream import stream_data
+
+from scripts.weather_stream import live_weather
 from scripts.update_live_service import live_service_stream
+from scripts.traffic_stream import live_traffic
 
 
 default_args = {
@@ -15,14 +17,14 @@ default_args = {
 }
 
         
-with DAG('user_automation',
+with DAG('pipeline_automation',
          default_args=default_args,
          schedule_interval='@daily',
          catchup=False) as dag:
 
     weather_task = PythonOperator(
-        task_id = 'stream_data_from_api',
-        python_callable = stream_data
+        task_id = 'weather_stream',
+        python_callable = live_weather
     )
 
     live_service_task = PythonOperator(
@@ -30,4 +32,9 @@ with DAG('user_automation',
         python_callable=live_service_stream
     )
 
-[weather_task, live_service_task]
+    traffic_task = PythonOperator(
+        task_id='traffic_stream',
+        python_callable=live_traffic
+    )
+
+[weather_task, live_service_task,traffic_task]

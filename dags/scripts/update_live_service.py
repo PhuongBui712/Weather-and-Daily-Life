@@ -10,6 +10,7 @@ import pytz
 
 from scripts.scrape_services_data import places_seach, location
 from scripts.preprocess_service_data import preprocess_data
+from scripts.weather_stream import get_next_crawling_time
 
 Saigon_timezone = pytz.timezone('Asia/Saigon')
 
@@ -42,8 +43,8 @@ def get_live_data(basic_file_path, basic_attributes, attributes, write_csv=False
     live_data_dict.update({'datetime': []})
     name_dict, addr_dict = basic_data_dict[basic_attributes[0]], basic_data_dict[basic_attributes[1]]
 
-    # get datetime
-    dt_obj = datetime.now()
+    # get datetime in vietname zone
+    dt_obj = datetime.now(Saigon_timezone)
     dt = dt_obj.strftime("%Y-%m-%d %H:%M:%S.%f%z")
     weekday = int(dt_obj.strftime('%w'))
     hour = int(dt_obj.strftime('%H'))
@@ -52,15 +53,15 @@ def get_live_data(basic_file_path, basic_attributes, attributes, write_csv=False
     not_livetime_places = []
 
     # get live data
-    name_dict_first10 = {k: name_dict[k] for k in list(name_dict)[:5]}
-    addr_dict_first10 = {k: addr_dict[k] for k in list(addr_dict)[:5]}
-    for name, addr in zip(list(name_dict_first10.values()), list(addr_dict_first10.values())):
+    for name, addr in zip(list(name_dict.values()), list(addr_dict.values())):
         live_response = get_populartimes_by_address(f'({name}) {addr}')
         
         live_data_record = {}#get each record send to kafka
 
+
+        #set attribute in to record
         if 'populartimes' in live_response:
-            live_data_record['datetime'] = dt
+            live_data_record['datetime'] = datetime.now(Saigon_timezone).strftime("%Y-%m-%d %H:%M:%S.%f%z")
             live_data_record['usual_popularity'] = live_response['populartimes'][map_weekday(weekday)]['data'][hour]
         else:
             not_livetime_places.append(name)
@@ -73,6 +74,8 @@ def get_live_data(basic_file_path, basic_attributes, attributes, write_csv=False
         for day in live_response['populartimes']:
             live_data_record[day['name'].lower()] = day['data']
 
+
+        #send report to topic in kafka
         try:
             producer.send('live_service', json.dumps(live_data_record).encode('utf-8'))
         except Exception as e:
@@ -80,14 +83,6 @@ def get_live_data(basic_file_path, basic_attributes, attributes, write_csv=False
 
     return not_livetime_places
 
-def get_next_crawling_time():
-    now = datetime.now(Saigon_timezone)
-    next_time = now + timedelta(minutes=15)
-    next_time = datetime(next_time.year, next_time.month, next_time.day,
-                         next_time.hour, (next_time.minute // 15) * 15, 1,
-                         tzinfo=Saigon_timezone)
-
-    return next_time
 
 def live_service_stream():
 
@@ -101,10 +96,6 @@ def live_service_stream():
                         file_out=r'/opt/airflow/dags/data/services.csv')
 
     while True:
-        next_time = get_next_crawling_time()
-        if datetime.now(Saigon_timezone).minute != next_time.minute:
-           sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
-
         try:
             not_live_places = get_live_data(r'/opt/airflow/dags/data/services.csv',
                                                    basic_attributes=basic_attributes,
@@ -114,3 +105,6 @@ def live_service_stream():
             logging.error(f'An error occured: {e}')
             break
 
+        next_time = get_next_crawling_time()
+        if datetime.now(Saigon_timezone).minute != next_time.minute:
+           sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)

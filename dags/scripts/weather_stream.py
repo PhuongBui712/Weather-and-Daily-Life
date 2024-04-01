@@ -45,8 +45,11 @@ def format_weather(res):
     location['latitude'] = res['location']['lat']
     location['longitude'] = res['location']['lon']
 
+    dt_obj = datetime.now(Saigon_timezone)
+    dt = dt_obj.strftime("%Y-%m-%d %H:%M:%S.%f%z")
+
     weather = {}
-    weather['time'] = res['data']['time']
+    weather['time'] = dt
     weather['cloud_base'] = res['data']['values']['cloudBase']
     weather['cloud_ceiling'] = res['data']['values']['cloudCeiling']
     weather['cloud_cover'] = res['data']['values']['cloudCover']
@@ -81,16 +84,13 @@ def get_next_crawling_time():
 
     return next_time
 
-def stream_data():
+def live_weather():
     from kafka import KafkaProducer
     import time
     import logging
     
     producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000)
     while True:
-        next_time = get_next_crawling_time()
-        if datetime.now(Saigon_timezone).minute != next_time.minute:
-            sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
         try:
             response_data = get_weather()
             response_weather = format_weather(response_data)
@@ -99,4 +99,8 @@ def stream_data():
         except Exception as e:
             logging.error(f'An error occured: {e}')
             break
+
+        next_time = get_next_crawling_time()
+        if datetime.now(Saigon_timezone).minute != next_time.minute:
+            sleep((next_time + timedelta(minutes=7) - datetime.now(Saigon_timezone)).seconds)
 

@@ -5,7 +5,6 @@ from pyspark.sql import SparkSession
 from pyspark.sql.functions import from_json, col
 from pyspark.sql.types import StructType, StructField, StringType, ArrayType, FloatType, TimestampType, IntegerType
 
-
 def create_keyspace(session):
     session.execute("""
         CREATE KEYSPACE IF NOT EXISTS spark_streams
@@ -15,7 +14,7 @@ def create_keyspace(session):
 def create_table_weather(session):
     session.execute("""
     CREATE TABLE IF NOT EXISTS spark_streams.weather (
-        time TIMESTAMP PRIMARY KEY,
+        time TEXT PRIMARY KEY,
         cloud_base FLOAT,
         cloud_ceiling FLOAT,
         cloud_cover FLOAT,
@@ -59,6 +58,23 @@ def create_table_live_service(session):
         sunday LIST<INT>);
     """)
 
+def create_table_traffic(session):
+    session.execute("""
+    CREATE TABLE IF NOT EXISTS spark_streams.traffic (
+        time TEXT PRIMARY KEY,
+        person INT,
+        bicycle INT,
+        motorcycle INT,
+        car INT,
+        stop_sign INT,
+        traffic_light INT,
+        truck INT,
+        bus INT,
+        potted_plant INT,
+        traffic_status TEXT,
+        location TEXT);
+    """)
+
 def create_live_service_df_from_kafka(spark_df):
     schema = StructType([
         StructField("datetime", StringType(), False),
@@ -84,7 +100,7 @@ def create_live_service_df_from_kafka(spark_df):
 
 def create_weather_df_from_kafka(spark_df):
     schema = StructType([
-        StructField("time", TimestampType(), False),
+        StructField("time", StringType(), False),
         StructField("cloud_base", FloatType()),
         StructField("cloud_ceiling", FloatType()),
         StructField("cloud_cover", FloatType()),
@@ -113,6 +129,27 @@ def create_weather_df_from_kafka(spark_df):
         .select(from_json(col('value'), schema).alias('data')).select("data.*")
 
     return weather_df
+
+def create_traffic_df_from_kafka(spark_df):
+    schema = StructType([
+        StructField("time", StringType(), False),
+        StructField("person", IntegerType()),
+        StructField("bicycle", IntegerType()),
+        StructField("motorcycle", IntegerType()),
+        StructField("car", IntegerType()),
+        StructField("stop_sign", IntegerType()),
+        StructField("traffic_light", IntegerType()),
+        StructField("truck", IntegerType()),
+        StructField("bus", IntegerType()),
+        StructField("potted_plant", IntegerType()),
+        StructField("traffic_status", StringType()),
+        StructField("location", StringType()),
+    ])
+
+    traffic_df = spark_df.selectExpr("CAST(value AS STRING)", "topic").where("topic = 'traffic'") \
+        .select(from_json(col('value'), schema).alias('data')).select("data.*")
+
+    return traffic_df
 
 def create_spark_connection():
     s_conn = None
@@ -144,7 +181,7 @@ def connect_to_kafka(spark_conn):
         spark_df = spark_conn.readStream \
             .format('kafka') \
             .option('kafka.bootstrap.servers', 'localhost:9092') \
-            .option('subscribe', 'weather,live_service') \
+            .option('subscribe', 'weather,live_service,traffic') \
             .option('startingOffsets', 'earliest') \
             .load()
         logging.info("kafka dataframe created successfully")
@@ -174,20 +211,19 @@ if __name__ == "__main__":
         spark_df = connect_to_kafka(spark_conn)
         weather_df = create_weather_df_from_kafka(spark_df)
         live_service_df = create_live_service_df_from_kafka(spark_df)
+        traffic_df = create_traffic_df_from_kafka(spark_df)
         
-        # query1 = weather_df.selectExpr("*").writeStream.outputMode("append").format("console").start()
-        # query2 = live_service_df.selectExpr("*").writeStream.outputMode("append").format("console").start()
-        
+        #query1 = traffic_df.selectExpr("*").writeStream.outputMode("append").format("console").start()
         
         session = create_cassandra_connection()
-        # query1.awaitTermination()
-        # query2.awaitTermination()
+        
+        #query1.awaitTermination()
 
         if session is not None:
             create_keyspace(session)
             create_table_weather(session)
             create_table_live_service(session)
-
+            create_table_traffic(session)
             logging.info("Streaming is being started...")
             
             streaming_query1 = (weather_df.writeStream.format("org.apache.spark.sql.cassandra")
@@ -202,8 +238,15 @@ if __name__ == "__main__":
                                 .option('table', 'live_service')
                                 .start())
             
+            streaming_query3 = (traffic_df.writeStream.format("org.apache.spark.sql.cassandra")
+                                .option('checkpointLocation', '/tmp/trafficCp')
+                                .option('keyspace', 'spark_streams')
+                                .option('table', 'traffic')
+                                .start())
+            
             streaming_query1.awaitTermination()
             streaming_query2.awaitTermination()
+            streaming_query3.awaitTermination()
 
 
 

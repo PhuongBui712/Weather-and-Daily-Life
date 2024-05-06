@@ -120,3 +120,10 @@ Dashboard in folder `/dashboard` contain two file *analys_report* and *realtime_
 5. Open PowerBI and start visualize
 
     `Important`: Don't click refresh in *realtime_report.pbix* because we already shut down the VPS where the datasource of this report retrieve to
+   
+   **Below is the result of our report**
+   
+   ![](images/realtime_dashboard.png)
+   ![](images/analys_dashboard_1.png)
+   ![](images/analys_dashboard_2.png)
+   ![](images/analys_dashboard_3.png)
